@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"math/rand"
 	"os"
@@ -250,7 +251,10 @@ func CalcPerms(nDecks int, card1, card2, dealerCard byte) float64 {
 }
 
 func main() {
-	nDecks := 1
+	nDecksPtr := flag.Int("nDecks", 1, "Number of decks")
+	flag.Parse()
+
+	nDecks := *nDecksPtr
 	baseDeck := CreateDeck(nDecks)
 	var noAceTable [21 - minScoreWithoutAce][10][3]float64
 	var aceTable [21 - minScoreWithAce][10][3]float64
@@ -347,14 +351,15 @@ func main() {
 		"splitTable": splitTableJSON,
 		"avgPerHand": avgPerHandJSON,
 	}
+	correctOrder := []string{"noAceTable", "aceTable", "splitTable", "avgPerHand"}
 
 	var fileContents []byte
-	for k, v := range jsons {
+	for _, k := range correctOrder {
 		if len(fileContents) > 0 {
 			fileContents = append(fileContents, []byte("\n\n")...)
 		}
 		fileContents = append(fileContents, []byte("const "+k+" = ")...)
-		fileContents = append(fileContents, v...)
+		fileContents = append(fileContents, jsons[k]...)
 		fileContents = append(fileContents, ';')
 	}
 	resFile.Write(fileContents)
